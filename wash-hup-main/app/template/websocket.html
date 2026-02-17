@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket chatapp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f6fa;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background: #2f3640;
+            color: #fff;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        .sidebar form {
+            margin-bottom: 30px;
+        }
+        .sidebar input, .sidebar button {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+        }
+        .sidebar input {
+            margin-bottom: 10px;
+        }
+        .sidebar button {
+            background: #00a8ff;
+            color: #fff;
+            cursor: pointer;
+        }
+        .users-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .users-list li {
+            background: #353b48;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .chatbox {
+            flex: 1;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 30px 40px;
+            box-sizing: border-box;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .chat-messages li {
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 18px;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .chat-messages .me {
+            background: #00a8ff;
+            color: #fff;
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-messages .other {
+            background: #f1f2f6;
+            color: #2f3640;
+            margin-right: auto;
+            text-align: left;
+        }
+        .chat-input {
+            display: flex;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 18px;
+            border: 1px solid #dcdde1;
+            margin-right: 10px;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            border-radius: 18px;
+            border: none;
+            background: #00a8ff;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Wash Up</h2>
+            <form id="connectForm" onsubmit="connect(event)">
+                <input type="text" id="clientId" placeholder="Enter your name" autocomplete="off"/>
+                <button type="submit">Connect</button>
+            </form>
+            <h3>Users</h3>
+            <ul id="users" class="users-list"></ul>
+        </div>
+        <div class="chatbox">
+            <ul id="messages" class="chat-messages"></ul>
+            <form class="chat-input" id="chatForm" onsubmit="sendMessage(event)">
+                <input type="text" id="messageText" placeholder="Type a message..." autocomplete="off"/>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        var clientId = null;
+        var ws = null;
+        var users = [];
+        var messages = [];
+        var usersList = document.getElementById('users');
+        var messagesList = document.getElementById('messages');
+        var chatForm = document.getElementById('chatForm');
+        chatForm.style.display = 'none';
+
+        function connect(event) {
+            event.preventDefault();
+            clientId = document.getElementById("clientId").value.trim();
+            if (!clientId) return;
+            try {
+                ws = new WebSocket(`ws://${window.location.hostname}:8000/v1/ws/connect/?token=${clientId}`);
+            } catch (error) {
+                alert('WebSocket connection failed: ' + error);
+                return;
+            }
+            ws.onopen = function() {
+                chatForm.style.display = '';
+            };
+            ws.onmessage = function(event) {
+                try {
+                    var data = JSON.parse(event.data);
+                    console.log(data)
+                    
+                    console.log(data)
+                    if (!users.includes(data.sender)) {
+                        users.push(data.sender)
+                    }
+                    messages.push(data);
+                    renderMessages();
+                } catch {
+                    // fallback for plain string messages
+                    messages.push({sender: 'other', text: event.data});
+                    renderMessages();
+                }
+            };
+            ws.onclose = function() {
+                chatForm.style.display = 'none';
+            };
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            var input = document.getElementById("messageText");
+            var text = input.value.trim();
+            if (!text) return;
+            let message = {
+                action: "issue",
+                message: text,
+            }
+            
+            ws.send(JSON.stringify(message));
+            
+            // messages.push({sender: clientId, text: text});
+            input.value = '';
+        }
+
+        function renderMessages() {
+            usersList.innerHTML = '';
+            users.forEach(function(user) {
+                var li = document.createElement('li');
+                li.textContent = user;
+                if (user === clientId) {
+                    li.style.background = '#00a8ff';
+                    li.style.color = '#fff';
+                }
+                usersList.appendChild(li);
+            });
+            messagesList.innerHTML = '';
+            messages.forEach((msg) => {
+                var li = document.createElement('li');
+                if (msg.sender === clientId) {
+                    li.className = 'me';
+                    li.textContent = msg.message;
+                } else if (msg.sender !== clientId) {
+                    li.className = 'other';
+                    li.textContent = `${msg.sender}: ${msg.message}`;
+                }
+                messagesList.appendChild(li);
+            });
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+    </script>
+</body>
+</html>

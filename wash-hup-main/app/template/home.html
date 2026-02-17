@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WahHup Car Wash API Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a1a 0%, #2a1a3d 50%, #1a2a4d 100%);
+            color: #e0e6f0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            padding: 5rem 2rem 8rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        header::before,
+        header::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.2;
+            background: radial-gradient(circle, rgba(0, 183, 212, 0.3), transparent);
+        }
+
+        header::before {
+            width: 400px;
+            height: 400px;
+            top: -150px;
+            left: -100px;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        header::after {
+            width: 250px;
+            height: 250px;
+            bottom: -120px;
+            right: -70px;
+            animation: float 12s infinite ease-in-out reverse;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        header p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            position: relative;
+            animation: fadeInUp 1s ease-out 0.3s;
+            animation-fill-mode: backwards;
+        }
+
+        .mockup {
+            position: relative;
+            max-width: 850px;
+            margin: 0 auto;
+            transform: rotate(-5deg);
+            animation: tilt 4s infinite ease-in-out;
+        }
+
+        .mockup::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05), transparent);
+            z-index: -1;
+        }
+
+        .mockup-content {
+            background: #1a1f2e;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            color: #a0b6d0;
+            text-align: center;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mockup-content svg {
+            width: 100%;
+            height: 100%;
+            max-height: 400px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .cta-button {
+            padding: 1rem 2.5rem;
+            background: #00b7d4;
+            color: #0a0a1a;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            animation: fadeInUp 1s ease-out 0.6s;
+            animation-fill-mode: backwards;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 183, 212, 0.5);
+            background: #00d4ff;
+        }
+
+        .cta-button.secondary {
+            background: #4a5a7a;
+            color: #e0e6f0;
+        }
+
+        .cta-button.secondary:hover {
+            background: #5a6a8a;
+            box-shadow: 0 8px 20px rgba(74, 90, 122, 0.5);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #0a0a1a;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 4rem;
+            color: #e0e6f0;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: #1a1f2e;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(0, 183, 212, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 183, 212, 0.2);
+        }
+
+        .feature-card .icon {
+            font-size: 2.5rem;
+            color: #00b7d4;
+            margin-bottom: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .feature-card:hover .icon {
+            color: #00d4ff;
+        }
+
+        .feature-card h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e0e6f0;
+        }
+
+        .feature-card p {
+            font-size: 1.1rem;
+            color: #a0b6d0;
+        }
+
+        .feature-card a {
+            color: #00b7d4;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        .feature-card a:hover {
+            color: #00d4ff;
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a1a;
+            color: #a0b6d0;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(0, 183, 212, 0.1);
+        }
+
+        footer p {
+            font-size: 1rem;
+        }
+
+        footer a {
+            color: #00b7d4;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #00d4ff;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(20px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes tilt {
+            0% { transform: rotate(-5deg); }
+            50% { transform: rotate(2deg); }
+            100% { transform: rotate(-5deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 { font-size: 2.5rem; }
+            header p { font-size: 1.1rem; }
+            .mockup { max-width: 600px; }
+            .cta-buttons { flex-direction: column; gap: 1rem; }
+            .cta-button { width: 100%; }
+            .features h2 { font-size: 2rem; }
+            header::before { width: 250px; height: 250px; }
+            header::after { width: 150px; height: 150px; }
+        }
+
+        @media (max-width: 480px) {
+            header { padding: 3rem 1rem 6rem; }
+            .features { padding: 3rem 1rem; }
+            .mockup-content { height: 350px; padding: 1.5rem; }
+            .feature-card { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>WahHup Car Wash API</h1>
+        <p>Empower your car wash empire with a decentralized API, harnessing real-time data and geospatial precision.</p>
+        
+        <div class="cta-buttons">
+            <a href="/docs" class="cta-button">Get Started</a>
+            <a href="/demo" class="cta-button secondary">Request Demo</a>
+        </div>
+    </header>
+
+    
+</body>
+</html>

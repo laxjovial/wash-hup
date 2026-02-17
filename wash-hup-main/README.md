@@ -32,7 +32,7 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 - **Geospatial Matching:** The system automatically finds and notifies the closest available washers.
 - **Real-time Offer System:** Washers receive booking offers in real-time and can accept or decline them.
 - **Support System:** A built-in issue tracking system for users to report problems.
-- **Admin Interface:** (Inferred) Endpoints for administrative oversight and management.
+- **Admin Interface:** Endpoints for administrative oversight and management.
 
 ## Getting Started
 
@@ -67,9 +67,12 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 4.  **Configure environment variables:**
     -   Copy the example environment file:
         ```bash
+        # On Windows
         copy .env.example .env
+        # On macOS/Linux
+        cp .env.example .env
         ```
-    -   Edit the `.env` file and provide the necessary credentials for your local database, Redis instance, and other services.
+    -   Edit the `.env` file and provide the necessary credentials for your local database (`SQLALCHEMY_DATABASE_URL`), Redis instance, and other services.
 
 5.  **Run database migrations:**
     -   Make sure your PostgreSQL server is running.
@@ -84,14 +87,46 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
     ```
     The API will be available at `http://127.0.0.1:8000`. You can access the interactive API documentation at `http://127.0.0.1:8000/docs`.
 
+## Admin Modules Structure & Status
+
+The admin functionalities are located within the `app/api/endpoints/admin/` directory. Below is the structure tree and the current implementation status:
+
+```text
+wash-hup-main/app/
+├── api/
+│   └── endpoints/
+│       └── admin/
+│           ├── accounts.py      # [EXISTS] User management and verification (Placeholders)
+│           ├── dashboard.py     # [EXISTS] Dashboard (Placeholders)
+│           ├── orders.py        # [EXISTS] Order management and Price regulation
+│           ├── auth.py          # [EXISTS] Admin authentication
+│           ├── wallet.py        # [EXISTS] Financial management
+│           ├── index.py         # [MODIFIED] Main Admin Router registration
+│           ├── issues.py        # [MEANT TO BE] REST endpoints for Issues
+│           └── emails.py        # [MEANT TO BE] Admin email endpoints
+├── websocket/
+│   └── handlers/
+│       └── issue_admin.py       # [EXISTS] Admin Issues handling via WebSocket
+└── utils/
+    └── email.py                 # [EXISTS] Email utility functions
+```
+
+### Module Status Summary:
+
+-   **User Management & Verification:** `accounts.py` exists but contains placeholders (`pass`).
+-   **Price Regulation:** Managed in `orders.py`; `add_price` is implemented, others are placeholders.
+-   **Order Management:** `orders.py` exists but most endpoints are placeholders.
+-   **Dashboard:** `dashboard.py` exists but contains placeholders.
+-   **Issues:** Handled via real-time WebSocket in `issue_admin.py`. REST endpoints are pending in `issues.py`.
+-   **Emails:** Utility functions in `app/utils/email.py` are available; dedicated admin endpoints are pending in `emails.py`.
+
 ## API Structure
 
-The API endpoints are organized into logical groups to provide a clear and RESTful interface.
+The API endpoints are organized into logical groups:
 
 -   `/auth`: Handles user creation, login, and token management.
--   `/api/v1/client`: Endpoints for client-specific actions (e.g., booking a wash).
--   `/api/v1/washer`: Endpoints for washer-specific actions (e.g., managing profile, accepting offers).
--   `/api/v1/user`: Endpoints for general user actions (e.g., profile updates, support issues).
+-   `/api/v1/client`: Endpoints for client-specific actions.
+-   `/api/v1/washer`: Endpoints for washer-specific actions.
+-   `/api/v1/user`: Endpoints for general user actions.
 -   `/api/v1/admin`: Endpoints for administrative tasks.
-
-The application also uses a WebSocket endpoint (`/ws`) for real-time communication.
+-   `/ws`: WebSocket endpoint for real-time communication.

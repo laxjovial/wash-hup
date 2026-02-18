@@ -3,7 +3,7 @@ from ...dependencies import admin_dependency, db_dependency
 from app.models.client.payment import Payment
 from app.models.washer.transaction import Transaction, Remittance
 from app.models.washer.profile import Wallet, WasherProfile
-from uuid import uuid4
+from sqlalchemy import func
 from typing import Optional
 
 
@@ -14,20 +14,18 @@ router = APIRouter(
 
 @router.get("/overview", status_code=status.HTTP_200_OK)
 async def get_wallet_overview(db: db_dependency, admin: admin_dependency):
-    total_payments = db.query(Payment).filter(Payment.status == 'completed').count()
-    total_amount = db.query(Payment).filter(Payment.status == 'completed').with_entities(Payment.amount).all()
-    sum_amount = sum([p.amount for p in total_amount])
+    total_payments_count = db.query(Payment).filter(Payment.status == 'completed').count()
+    total_payments_amount = db.query(func.sum(Payment.amount)).filter(Payment.status == 'completed').scalar() or 0.0
 
-    total_remittance = db.query(Remittance).with_entities(Remittance.amount).all()
-    sum_remittance = sum([r.amount for r in total_remittance])
+    total_remittance_amount = db.query(func.sum(Remittance.amount)).scalar() or 0.0
 
     return {
         "status": "success",
         "data": {
-            "total_payments_count": total_payments,
-            "total_payments_amount": sum_amount,
-            "total_remittance_amount": sum_remittance,
-            "platform_earnings": sum_amount - sum_remittance
+            "total_payments_count": total_payments_count,
+            "total_payments_amount": total_payments_amount,
+            "total_remittance_amount": total_remittance_amount,
+            "platform_earnings": total_payments_amount - total_remittance_amount
         }
     }
 
@@ -48,7 +46,6 @@ async def get_remission_history(db: db_dependency, admin: admin_dependency, skip
 
 @router.get("/users/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user_wallet(user_id: str, db: db_dependency, admin: admin_dependency):
-    # Primarily for washers
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Washer profile not found")
@@ -61,12 +58,10 @@ async def get_user_wallet(user_id: str, db: db_dependency, admin: admin_dependen
 
 @router.get("/users/{user_id}/payments", status_code=status.HTTP_200_OK)
 async def get_user_payments(user_id: str, db: db_dependency, admin: admin_dependency):
-    # Payments sent by a client or received by a washer
     profile = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if profile:
         payments = db.query(Payment).filter(Payment.receiver_id == profile.id).all()
     else:
-        # Check if it's an owner
         from app.models.client.profile import OwnerProfile
         profile = db.query(OwnerProfile).filter(OwnerProfile.user_id == user_id).first()
         if not profile:

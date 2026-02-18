@@ -1,10 +1,12 @@
 from fastapi import APIRouter, status, HTTPException, Query, Body
+
 from ...dependencies import admin_dependency, db_dependency
 from app.models.auth.user import User, Profile
 from app.models.client.profile import OwnerProfile
 from app.models.washer.profile import WasherProfile
 from app.models.admin.profile import VerificationRequest
 from app.crud.notifications import NOTIFY, NOTIFICATION
+
 from uuid import uuid4
 from typing import Optional
 
@@ -188,3 +190,4 @@ async def send_user_notification(
 
     await NOTIFY.create(db, profile.id, title, message, fullname=profile.user.fullname)
     return {"status": "success", "message": "Notification sent"}
+

@@ -2,6 +2,7 @@ from fastapi import APIRouter, status, HTTPException, Body
 from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.admin.prices import ServicePrice
 from app.models.client.wash import Wash, Review
+
 from uuid import uuid4
 from typing import Optional, List
 
@@ -113,3 +114,4 @@ async def delete_review(review_id: str, db: db_dependency, admin: admin_dependen
     db.delete(review)
     db.commit()
     return {"status": "success", "message": "Review deleted"}
+

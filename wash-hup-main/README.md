@@ -32,7 +32,7 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 - **Geospatial Matching:** The system automatically finds and notifies the closest available washers.
 - **Real-time Offer System:** Washers receive booking offers in real-time and can accept or decline them.
 - **Support System:** A built-in issue tracking system for users to report problems.
-- **Admin Interface:** (Inferred) Endpoints for administrative oversight and management.
+- **Admin Interface:** Full administrative dashboard for managing users, verification, prices, and orders.
 
 ## Getting Started
 
@@ -67,9 +67,16 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 4.  **Configure environment variables:**
     -   Copy the example environment file:
         ```bash
+        # On Windows
         copy .env.example .env
+        # On macOS/Linux
+        cp .env.example .env
         ```
-    -   Edit the `.env` file and provide the necessary credentials for your local database, Redis instance, and other services.
+    -   Edit the `.env` file and provide the necessary credentials:
+        *   `SQLALCHEMY_DATABASE_URL`: Your PostgreSQL connection string (e.g., `postgresql://user:password@localhost/dbname`).
+        *   `REDIS_HOST`, `REDIS_PORT`: Your Redis server details.
+        *   `SECRET_KEY`: For JWT token signing.
+        *   `RESEND_API_KEY`: For sending emails.
 
 5.  **Run database migrations:**
     -   Make sure your PostgreSQL server is running.
@@ -84,14 +91,39 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
     ```
     The API will be available at `http://127.0.0.1:8000`. You can access the interactive API documentation at `http://127.0.0.1:8000/docs`.
 
+## Admin Modules Structure
+
+The administrative functionalities are fully implemented and organized within the `app/api/endpoints/admin/` directory:
+
+```text
+wash-hup-main/app/
+├── api/
+│   └── endpoints/
+│       └── admin/
+│           ├── accounts.py      # User management, verification, and status control.
+│           ├── dashboard.py     # Statistics, revenue tracking, and trend charts.
+│           ├── orders.py        # Order management, service price regulation, and reviews.
+│           ├── issues.py        # REST endpoints for support issue management.
+│           ├── emails.py        # Administrative email and broadcast tools.
+│           ├── rewards.py       # Rewards and discounts management.
+│           ├── site.py          # FAQ and Terms & Conditions management.
+│           ├── auth.py          # Admin authentication.
+│           ├── wallet.py        # Financial and remission management.
+│           └── index.py         # Main Admin Router registration.
+├── websocket/
+│   └── handlers/
+│       └── issue_admin.py       # Real-time admin issue handling.
+└── utils/
+    └── email.py                 # Core email utility functions.
+```
+
 ## API Structure
 
-The API endpoints are organized into logical groups to provide a clear and RESTful interface.
+The API endpoints are organized into logical groups:
 
 -   `/auth`: Handles user creation, login, and token management.
 -   `/api/v1/client`: Endpoints for client-specific actions (e.g., booking a wash).
 -   `/api/v1/washer`: Endpoints for washer-specific actions (e.g., managing profile, accepting offers).
 -   `/api/v1/user`: Endpoints for general user actions (e.g., profile updates, support issues).
--   `/api/v1/admin`: Endpoints for administrative tasks.
-
-The application also uses a WebSocket endpoint (`/ws`) for real-time communication.
+-   `/api/v1/admin`: Comprehensive administrative management endpoints.
+-   `/ws`: WebSocket endpoint for real-time bidirectional communication.

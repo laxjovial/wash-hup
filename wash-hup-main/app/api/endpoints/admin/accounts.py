@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status, HTTPException, Query, Body
-from ...dependencies import admin_dependency, db_dependency
+from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.auth.user import User, Profile
 from app.models.client.profile import OwnerProfile
 from app.models.washer.profile import WasherProfile
-from app.models.admin.profile import VerificationRequest
+from app.models.admin.profile import VerificationRequest, VerificationStatus
 from app.crud.notifications import NOTIFY, NOTIFICATION
 from app.schemas.request.admin import AdminNotificationSchema
 from app.schemas.response.admin import AdminUsersListResponse, AdminBaseResponse, AdminDataResponse
@@ -17,7 +17,6 @@ router = APIRouter(
 )
 
 @router.get("/owners", status_code=status.HTTP_200_OK, response_model=AdminUsersListResponse)
-
 async def get_owner_accounts(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
     owners = db.query(OwnerProfile).offset(skip).limit(limit).all()
     return {"status": "success", "data": owners}
@@ -72,14 +71,17 @@ async def filter_verification_accounts(db: db_dependency, admin: admin_dependenc
 
 @router.post("/verifications/accept/{user_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def accept_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
+    admin_profile = get_profile_model(db, admin.get("id"))
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Washer profile not found")
     washer.profile_verified = True
 
-    # Mark verification request as seen
-    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id).first()
+    # Update verification request
+    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id, VerificationRequest.status == VerificationStatus.PENDING).first()
     if req:
+        req.status = VerificationStatus.APPROVED
+        req.handled_by = admin_profile.id
         req.seen = True
 
     db.commit()
@@ -87,13 +89,16 @@ async def accept_verification_account(user_id: str, db: db_dependency, admin: ad
 
 @router.post("/verifications/reject/{user_id}", status_code=status.HTTP_200_OK)
 async def reject_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
+    admin_profile = get_profile_model(db, admin.get("id"))
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Washer profile not found")
     washer.profile_verified = False
 
-    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id).first()
+    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id, VerificationRequest.status == VerificationStatus.PENDING).first()
     if req:
+        req.status = VerificationStatus.REJECTED
+        req.handled_by = admin_profile.id
         req.seen = True
 
     db.commit()

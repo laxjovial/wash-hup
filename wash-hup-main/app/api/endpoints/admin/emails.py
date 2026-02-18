@@ -20,9 +20,10 @@ async def send_admin_email(
 ):
     resend.api_key = os.getenv("RESEND_API_KEY")
 
+    sender = os.getenv("ADMIN_EMAIL_SENDER", "Wash-Hup Admin <admin@mail.washhup.com>")
     try:
         r = resend.Emails.send({
-            "from": "Wash-Hup Admin <admin@mail.washhup.com>",
+            "from": sender,
             "to": data.recipients,
             "subject": data.subject,
             "html": f"<p>{data.body}</p>"
@@ -48,6 +49,7 @@ async def broadcast_email(
 
     # Resend supports batching or multiple recipients in 'to' (up to a limit)
     # For a large number of users, we might want to chunk this.
+    sender = os.getenv("ADMIN_EMAIL_SENDER", "Wash-Hup Broadcast <broadcast@mail.washhup.com>")
     try:
         # Simple implementation using a single call (works for up to 50 recipients in Resend free tier/standard)
         # For real broadcast, we should loop or use batching.
@@ -55,7 +57,7 @@ async def broadcast_email(
         for i in range(0, len(emails), chunk_size):
             chunk = emails[i:i + chunk_size]
             resend.Emails.send({
-                "from": "Wash-Hup Broadcast <broadcast@mail.washhup.com>",
+                "from": sender,
                 "to": chunk,
                 "subject": data.subject,
                 "html": f"<p>{data.body}</p>"

@@ -73,7 +73,6 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
         # On macOS/Linux
         cp .env.example .env
         ```
-
     -   Edit the `.env` file and provide the necessary credentials:
         *   `SQLALCHEMY_DATABASE_URL`: Your PostgreSQL connection string (e.g., `postgresql://user:password@localhost/dbname`).
         *   `REDIS_HOST`, `REDIS_PORT`: Your Redis server details.
@@ -96,7 +95,6 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 ## Admin Modules Structure
 
 The administrative functionalities are fully implemented and organized within the `app/api/endpoints/admin/` directory:
-
 
 ```text
 wash-hup-main/app/

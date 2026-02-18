@@ -21,7 +21,7 @@ async def get_faqs(db: db_dependency, admin: admin_dependency, category: Optiona
     faqs = query.all()
     return {"status": "success", "data": faqs}
 
-@router.post("/faqs", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
+@router.post("/faqs", status_code=status.HTTP_201_CREATED, response_model=AdminDataResponse)
 async def create_faq(
     db: db_dependency,
     admin: admin_dependency,
@@ -40,7 +40,7 @@ async def create_faq(
     db.refresh(faq)
     return {"status": "success", "data": faq}
 
-@router.put("/faqs/{faq_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
+@router.put("/faqs/{faq_id}", status_code=status.HTTP_200_OK, response_model=AdminDataResponse)
 async def update_faq(
     faq_id: str,
     db: db_dependency,
@@ -66,7 +66,7 @@ async def get_terms(db: db_dependency, admin: admin_dependency, category: Option
     terms = query.all()
     return {"status": "success", "data": terms}
 
-@router.post("/terms", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
+@router.post("/terms", status_code=status.HTTP_201_CREATED, response_model=AdminDataResponse)
 async def create_terms(
     db: db_dependency,
     admin: admin_dependency,

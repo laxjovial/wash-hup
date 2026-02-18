@@ -19,7 +19,7 @@ async def get_rewards(db: db_dependency, admin: admin_dependency):
     rewards = db.query(Reward).all()
     return {"status": "success", "data": rewards}
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=AdminDataResponse)
 async def create_reward(
     db: db_dependency,
     admin: admin_dependency,
@@ -48,7 +48,7 @@ async def get_all_discounts(db: db_dependency, admin: admin_dependency):
     discounts = db.query(Discounts).all()
     return {"status": "success", "data": discounts}
 
-@router.post("/discounts", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
+@router.post("/discounts", status_code=status.HTTP_201_CREATED, response_model=AdminDataResponse)
 async def create_discount(
     db: db_dependency,
     admin: admin_dependency,
@@ -59,9 +59,11 @@ async def create_discount(
     if not user_profile:
         raise HTTPException(status_code=404, detail="User profile not found")
 
+    profile = get_profile_model(db, admin.get("id"))
     discount = Discounts(
         id="disc_"+str(uuid4()),
         profile_id=user_profile.id,
+        admin_id=profile.id,
         title=data.title,
         description=data.description,
         total=data.total

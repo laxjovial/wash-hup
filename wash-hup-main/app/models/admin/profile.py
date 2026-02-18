@@ -13,6 +13,9 @@ class AdminProfile(Profile):
     id: Mapped[str] = mapped_column(ForeignKey('profile.id'), primary_key=True)
 
     discounts = relationship("Discounts", back_populates="creator")
+    verification_handled = relationship("VerificationRequest", back_populates="handler")
+    faqs = relationship("Faqs", back_populates="admin")
+    terms = relationship("TermsAndConditions", back_populates="admin")
     
     __mapper_args__ = {
         'polymorphic_identity': 'admin'
@@ -21,6 +24,11 @@ class AdminProfile(Profile):
 class Category(str, Enum):
     OWNER = 'owner'
     WASHER = 'washer'
+
+class VerificationStatus(str, Enum):
+    PENDING = 'pending'
+    APPROVED = 'approved'
+    REJECTED = 'rejected'
 
 class Faqs(Base):
     __tablename__ = 'faqs'
@@ -33,6 +41,8 @@ class Faqs(Base):
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     updated: Mapped[datetime] = mapped_column(default=None, onupdate=datetime.now(timezone.utc))
 
+    admin = relationship("AdminProfile", back_populates="faqs")
+
 class TermsAndConditions(Base):
     __tablename__ = 'terms_and_conditions'
 
@@ -42,11 +52,18 @@ class TermsAndConditions(Base):
     terms: Mapped[str]
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
 
+    admin = relationship("AdminProfile", back_populates="terms")
+
 class VerificationRequest(Base):
     __tablename__ = 'verification_request'
 
     id: Mapped[str] = mapped_column(primary_key=True, index=True)
     washer_id: Mapped[str] = mapped_column(ForeignKey('washer_profile.id'), nullable=False)
     category: Mapped[str]
+    status: Mapped[VerificationStatus] = mapped_column(SQLEnum(VerificationStatus), default=VerificationStatus.PENDING)
+    handled_by: Mapped[str] = mapped_column(ForeignKey('admin_profile.id'), nullable=True)
+    admin_notes: Mapped[str] = mapped_column(nullable=True)
     seen: Mapped[bool] = mapped_column(default=False)
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+
+    handler = relationship("AdminProfile", back_populates="verification_handled")

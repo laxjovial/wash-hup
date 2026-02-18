@@ -32,10 +32,7 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 - **Geospatial Matching:** The system automatically finds and notifies the closest available washers.
 - **Real-time Offer System:** Washers receive booking offers in real-time and can accept or decline them.
 - **Support System:** A built-in issue tracking system for users to report problems.
-
-
-
-- **Admin Interface:** Endpoints for administrative oversight and management.
+- **Admin Interface:** Full administrative dashboard for managing users, verification, prices, and orders.
 
 
 ## Getting Started
@@ -83,7 +80,6 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
         *   `SECRET_KEY`: For JWT token signing.
         *   `RESEND_API_KEY`: For sending emails.
 
-
 5.  **Run database migrations:**
     -   Make sure your PostgreSQL server is running.
     -   Apply the migrations to create the database schema:
@@ -109,9 +105,11 @@ wash-hup-main/app/
 │       └── admin/
 │           ├── accounts.py      # User management, verification, and status control.
 │           ├── dashboard.py     # Statistics, revenue tracking, and trend charts.
-│           ├── orders.py        # Order management and service price regulation.
+│           ├── orders.py        # Order management, service price regulation, and reviews.
 │           ├── issues.py        # REST endpoints for support issue management.
 │           ├── emails.py        # Administrative email and broadcast tools.
+│           ├── rewards.py       # Rewards and discounts management.
+│           ├── site.py          # FAQ and Terms & Conditions management.
 │           ├── auth.py          # Admin authentication.
 │           ├── wallet.py        # Financial and remission management.
 │           └── index.py         # Main Admin Router registration.

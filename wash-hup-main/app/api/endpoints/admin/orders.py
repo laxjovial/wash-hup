@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, HTTPException, Body
 from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.admin.prices import ServicePrice
-from app.models.client.wash import Wash
+from app.models.client.wash import Wash, Review
+
 from uuid import uuid4
 from typing import Optional, List
 
@@ -99,3 +100,18 @@ async def update_price(
     db.commit()
     db.refresh(price_model)
     return {"status": "success", "message": "Prices updated", "data": price_model}
+
+@router.get("/reviews", status_code=status.HTTP_200_OK)
+async def get_all_reviews(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
+    reviews = db.query(Review).offset(skip).limit(limit).all()
+    return {"status": "success", "data": reviews}
+
+@router.delete("/reviews/{review_id}", status_code=status.HTTP_200_OK)
+async def delete_review(review_id: str, db: db_dependency, admin: admin_dependency):
+    review = db.query(Review).filter(Review.id == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    db.delete(review)
+    db.commit()
+    return {"status": "success", "message": "Review deleted"}
+

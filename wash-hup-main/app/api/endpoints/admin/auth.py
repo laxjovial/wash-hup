@@ -70,3 +70,23 @@ async def create_admin(form_data: SignUpForm, db: db_dependency, bgTask: Backgro
             'password': create_user_model.hashed_password
         }
     }
+
+
+@router.post("/login/", status_code=status.HTTP_200_OK)
+async def login_admin(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(db, form_data.username, form_data.password)
+
+    if not user:
+        raise HTTPException(status_code=401, detail='invalid email or password')
+
+    if user.role != 'admin':
+        raise HTTPException(status_code=401, detail='user is not an admin')
+
+    token = create_access_token(user.email, user.id, user.role)
+
+    return {
+        'status': "ok",
+        'message': "Login successful",
+        'access_token': token,
+        'token_type': 'bearer'
+    }

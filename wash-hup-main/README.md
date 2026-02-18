@@ -34,6 +34,7 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 - **Support System:** A built-in issue tracking system for users to report problems.
 - **Admin Interface:** Full administrative dashboard for managing users, verification, prices, and orders.
 
+
 ## Getting Started
 
 ### Prerequisites

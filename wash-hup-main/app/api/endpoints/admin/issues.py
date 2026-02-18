@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Body
 from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.auth.user import Issue, IssueMessage
+from app.schemas.response.admin import AdminBaseResponse, AdminDataResponse
 from uuid import uuid4
 from datetime import datetime
 
@@ -23,7 +24,7 @@ async def get_issue_details(issue_id: str, db: db_dependency, admin: admin_depen
     messages = db.query(IssueMessage).filter(IssueMessage.issue_id == issue_id).all()
     return {"status": "success", "data": {"issue": issue, "messages": messages}}
 
-@router.post("/{issue_id}/respond", status_code=status.HTTP_201_CREATED)
+@router.post("/{issue_id}/respond", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
 async def respond_to_issue(issue_id: str, db: db_dependency, admin: admin_dependency, body: str = Body(..., embed=True)):
     issue = db.query(Issue).filter(Issue.id == issue_id).first()
     if not issue:

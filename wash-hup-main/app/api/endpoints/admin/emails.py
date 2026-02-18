@@ -1,6 +1,8 @@
 from fastapi import APIRouter, status, Body, Depends
 from ...dependencies import admin_dependency, db_dependency
 from app.models.auth.user import User
+from app.schemas.request.admin import EmailSendSchema, BroadcastEmailSchema
+from app.schemas.response.admin import AdminBaseResponse
 import os
 import resend
 from typing import List
@@ -11,32 +13,29 @@ router = APIRouter(
     tags=["Admin: Emails"]
 )
 
-@router.post("/send", status_code=status.HTTP_200_OK)
+@router.post("/send", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def send_admin_email(
     admin: admin_dependency,
-    recipients: List[str] = Body(...),
-    subject: str = Body(...),
-    body: str = Body(...)
+    data: EmailSendSchema
 ):
     resend.api_key = os.getenv("RESEND_API_KEY")
 
     try:
         r = resend.Emails.send({
             "from": "Wash-Hup Admin <admin@mail.washhup.com>",
-            "to": recipients,
-            "subject": subject,
-            "html": f"<p>{body}</p>"
+            "to": data.recipients,
+            "subject": data.subject,
+            "html": f"<p>{data.body}</p>"
         })
         return {"status": "success", "message": "Email sent successfully", "data": r}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-@router.post("/broadcast", status_code=status.HTTP_200_OK)
+@router.post("/broadcast", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def broadcast_email(
     db: db_dependency,
     admin: admin_dependency,
-    subject: str = Body(...),
-    body: str = Body(...)
+    data: BroadcastEmailSchema
 ):
     resend.api_key = os.getenv("RESEND_API_KEY")
 
@@ -58,8 +57,8 @@ async def broadcast_email(
             resend.Emails.send({
                 "from": "Wash-Hup Broadcast <broadcast@mail.washhup.com>",
                 "to": chunk,
-                "subject": subject,
-                "html": f"<p>{body}</p>"
+                "subject": data.subject,
+                "html": f"<p>{data.body}</p>"
             })
 
         return {"status": "success", "message": f"Broadcast sent to {len(emails)} users"}

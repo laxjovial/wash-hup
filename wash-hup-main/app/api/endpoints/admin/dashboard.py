@@ -4,6 +4,7 @@ from app.models.auth.user import User, Issue
 from app.models.client.profile import OwnerProfile
 from app.models.washer.profile import WasherProfile
 from app.models.client.wash import Wash
+from app.schemas.response.admin import DashboardOverviewResponse
 from sqlalchemy import func
 from datetime import datetime, timedelta
 
@@ -12,7 +13,7 @@ router = APIRouter(
     tags=["Admin: Dashboard"]
 )
 
-@router.get("/overview", status_code=status.HTTP_200_OK)
+@router.get("/overview", status_code=status.HTTP_200_OK, response_model=DashboardOverviewResponse)
 async def get_dashboard_overview(db: db_dependency, admin: admin_dependency):
     total_users = db.query(User).count()
     total_owners = db.query(OwnerProfile).count()

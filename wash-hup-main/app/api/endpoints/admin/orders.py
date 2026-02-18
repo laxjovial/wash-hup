@@ -2,7 +2,8 @@ from fastapi import APIRouter, status, HTTPException, Body
 from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.admin.prices import ServicePrice
 from app.models.client.wash import Wash, Review
-
+from app.schemas.request.admin import PriceUpdateSchema
+from app.schemas.response.admin import AdminBaseResponse, AdminDataResponse
 from uuid import uuid4
 from typing import Optional, List
 
@@ -74,28 +75,23 @@ async def add_price(db: db_dependency, admin: admin_dependency):
         "data": price_model
     }
 
-@router.put("/prices/{price_id}", status_code=status.HTTP_200_OK)
+@router.put("/prices/{price_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def update_price(
     price_id: str,
     db: db_dependency,
     admin: admin_dependency,
-    quick_min: Optional[float] = Body(None),
-    quick_max: Optional[float] = Body(None),
-    smart_min: Optional[float] = Body(None),
-    smart_max: Optional[float] = Body(None),
-    premium_min: Optional[float] = Body(None),
-    premium_max: Optional[float] = Body(None)
+    data: PriceUpdateSchema
 ):
     price_model = db.query(ServicePrice).filter(ServicePrice.id == price_id).first()
     if not price_model:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Price model not found")
 
-    if quick_min is not None: price_model.quick_min = quick_min
-    if quick_max is not None: price_model.quick_max = quick_max
-    if smart_min is not None: price_model.smart_min = smart_min
-    if smart_max is not None: price_model.smart_max = smart_max
-    if premium_min is not None: price_model.premium_min = premium_min
-    if premium_max is not None: price_model.premium_max = premium_max
+    if data.quick_min is not None: price_model.quick_min = data.quick_min
+    if data.quick_max is not None: price_model.quick_max = data.quick_max
+    if data.smart_min is not None: price_model.smart_min = data.smart_min
+    if data.smart_max is not None: price_model.smart_max = data.smart_max
+    if data.premium_min is not None: price_model.premium_min = data.premium_min
+    if data.premium_max is not None: price_model.premium_max = data.premium_max
 
     db.commit()
     db.refresh(price_model)
@@ -106,7 +102,7 @@ async def get_all_reviews(db: db_dependency, admin: admin_dependency, skip: int 
     reviews = db.query(Review).offset(skip).limit(limit).all()
     return {"status": "success", "data": reviews}
 
-@router.delete("/reviews/{review_id}", status_code=status.HTTP_200_OK)
+@router.delete("/reviews/{review_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def delete_review(review_id: str, db: db_dependency, admin: admin_dependency):
     review = db.query(Review).filter(Review.id == review_id).first()
     if not review:
@@ -114,4 +110,3 @@ async def delete_review(review_id: str, db: db_dependency, admin: admin_dependen
     db.delete(review)
     db.commit()
     return {"status": "success", "message": "Review deleted"}
-

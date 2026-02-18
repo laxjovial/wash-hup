@@ -1,12 +1,12 @@
 from fastapi import APIRouter, status, HTTPException, Query, Body
-
 from ...dependencies import admin_dependency, db_dependency
 from app.models.auth.user import User, Profile
 from app.models.client.profile import OwnerProfile
 from app.models.washer.profile import WasherProfile
 from app.models.admin.profile import VerificationRequest
 from app.crud.notifications import NOTIFY, NOTIFICATION
-
+from app.schemas.request.admin import AdminNotificationSchema
+from app.schemas.response.admin import AdminUsersListResponse, AdminBaseResponse, AdminDataResponse
 from uuid import uuid4
 from typing import Optional
 
@@ -16,7 +16,8 @@ router = APIRouter(
     tags=["Admin: Accounts Management"]
 )
 
-@router.get("/owners", status_code=status.HTTP_200_OK)
+@router.get("/owners", status_code=status.HTTP_200_OK, response_model=AdminUsersListResponse)
+
 async def get_owner_accounts(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
     owners = db.query(OwnerProfile).offset(skip).limit(limit).all()
     return {"status": "success", "data": owners}
@@ -69,7 +70,7 @@ async def filter_verification_accounts(db: db_dependency, admin: admin_dependenc
     verifications = query.all()
     return {"status": "success", "data": verifications}
 
-@router.post("/verifications/accept/{user_id}", status_code=status.HTTP_200_OK)
+@router.post("/verifications/accept/{user_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
 async def accept_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
@@ -176,18 +177,16 @@ async def unflag_account(user_id: str, db: db_dependency, admin: admin_dependenc
     db.commit()
     return {"status": "success", "message": "Account unflagged"}
 
-@router.post("/{user_id}/notify", status_code=status.HTTP_201_CREATED)
+@router.post("/{user_id}/notify", status_code=status.HTTP_201_CREATED, response_model=AdminBaseResponse)
 async def send_user_notification(
     user_id: str,
     db: db_dependency,
     admin: admin_dependency,
-    title: str = Body(..., embed=True),
-    message: str = Body(..., embed=True)
+    data: AdminNotificationSchema
 ):
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()
     if not profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
 
-    await NOTIFY.create(db, profile.id, title, message, fullname=profile.user.fullname)
+    await NOTIFY.create(db, profile.id, data.title, data.message, fullname=profile.user.fullname)
     return {"status": "success", "message": "Notification sent"}
-

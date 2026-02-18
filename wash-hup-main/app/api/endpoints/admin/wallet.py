@@ -3,6 +3,7 @@ from ...dependencies import admin_dependency, db_dependency
 from app.models.client.payment import Payment
 from app.models.washer.transaction import Transaction, Remittance
 from app.models.washer.profile import Wallet, WasherProfile
+from app.schemas.response.admin import WalletOverviewResponse
 from sqlalchemy import func
 from typing import Optional
 
@@ -12,7 +13,7 @@ router = APIRouter(
     tags=["Admin: Wallet"]
 )
 
-@router.get("/overview", status_code=status.HTTP_200_OK)
+@router.get("/overview", status_code=status.HTTP_200_OK, response_model=WalletOverviewResponse)
 async def get_wallet_overview(db: db_dependency, admin: admin_dependency):
     total_payments_count = db.query(Payment).filter(Payment.status == 'completed').count()
     total_payments_amount = db.query(func.sum(Payment.amount)).filter(Payment.status == 'completed').scalar() or 0.0

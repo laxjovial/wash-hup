@@ -17,6 +17,7 @@ router = APIRouter(
 )
 
 @router.get("/owners", status_code=status.HTTP_200_OK, response_model=AdminUsersListResponse)
+
 async def get_owner_accounts(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
     owners = db.query(OwnerProfile).offset(skip).limit(limit).all()
     return {"status": "success", "data": owners}

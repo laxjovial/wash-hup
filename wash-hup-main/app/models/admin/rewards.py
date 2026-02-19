@@ -65,4 +65,4 @@ class Discounts(Base):
     collected: Mapped[bool] = mapped_column(default=False)
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
 
-    creator: Mapped["AdminProfile"] = relationship("AdminProfile", back_populates="discounts")
+    creator: Mapped["AdminProfile"] = relationship("AdminProfile", back_populates="discounts", foreign_keys=[admin_id])

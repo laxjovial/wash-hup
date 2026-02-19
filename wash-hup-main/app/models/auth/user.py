@@ -40,7 +40,7 @@ class Profile(Base):
 
     payment_method: Mapped[str] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-    updated: Mapped[datetime] = mapped_column(default=None, onupdate=datetime.now(timezone.utc))
+    updated: Mapped[datetime] = mapped_column(nullable=True, default=None, onupdate=datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="profile")
     address = relationship("Address", back_populates="profile", cascade="all, delete-orphan")

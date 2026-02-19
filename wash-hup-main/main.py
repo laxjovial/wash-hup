@@ -4,6 +4,7 @@ from app.api.endpoints._v1 import routers
 from app.database import Base, engine
 from app.websocket.manager import WSManager
 import time
+import os
 
 manager = WSManager()
 
@@ -13,7 +14,9 @@ app = FastAPI(
     version='0.8.5',
 )
 
-Base.metadata.create_all(bind=engine)
+# Only create tables if not in a testing environment or if explicitly requested
+if os.getenv("ENV") != "testing":
+    Base.metadata.create_all(bind=engine)
 
 
 app.add_middleware(

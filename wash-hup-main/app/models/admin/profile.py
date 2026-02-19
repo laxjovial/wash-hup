@@ -39,7 +39,7 @@ class Faqs(Base):
     question: Mapped[str]
     answer: Mapped[str]
     created: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-    updated: Mapped[datetime] = mapped_column(default=None, onupdate=datetime.now(timezone.utc))
+    updated: Mapped[datetime] = mapped_column(nullable=True, default=None, onupdate=datetime.now(timezone.utc))
 
     admin = relationship("AdminProfile", back_populates="faqs")
 

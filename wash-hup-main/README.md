@@ -68,16 +68,15 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
 4.  **Configure environment variables:**
     -   Copy the example environment file:
         ```bash
-        # On Windows
-        copy .env.example .env
-        # On macOS/Linux
         cp .env.example .env
         ```
-    -   Edit the `.env` file and provide the necessary credentials:
-        *   `SQLALCHEMY_DATABASE_URL`: Your PostgreSQL connection string (e.g., `postgresql://user:password@localhost/dbname`).
-        *   `REDIS_HOST`, `REDIS_PORT`: Your Redis server details.
+    -   Edit the `.env` file and provide the necessary credentials. The application uses the following key variables:
+        *   `POSTGRESQL_DB_URL`: Your PostgreSQL connection string.
+        *   `REDIS_URL`: Your Redis connection string (e.g., `redis://localhost:6379/0`).
         *   `SECRET_KEY`: For JWT token signing.
-        *   `RESEND_API_KEY`: For sending emails.
+        *   `ALGORITHM`: JWT algorithm (defaults to `HS256`).
+        *   `RESEND_API_KEY`: For sending emails via Resend.
+        *   `PAYSTACK_SECRET_KEY`: For processing payments.
 
 5.  **Run database migrations:**
     -   Make sure your PostgreSQL server is running.
@@ -91,6 +90,19 @@ The Wash-Hup API is built using a modern Python stack, emphasizing performance a
     uvicorn main:app --reload
     ```
     The API will be available at `http://127.0.0.1:8000`. You can access the interactive API documentation at `http://127.0.0.1:8000/docs`.
+
+## Testing
+
+A test suite for administrative functionalities is provided in the `tests/` directory. To run the tests:
+
+```bash
+export POSTGRESQL_DB_URL=sqlite:///./test.db
+export REDIS_URL=redis://localhost:6379
+export SECRET_KEY=test_secret
+export ALGORITHM=HS256
+export ENV=testing
+PYTHONPATH=. pytest tests/admin/
+```
 
 ## Admin Modules Structure
 
@@ -117,14 +129,3 @@ wash-hup-main/app/
 └── utils/
     └── email.py                 # Core email utility functions.
 ```
-
-## API Structure
-
-The API endpoints are organized into logical groups:
-
--   `/auth`: Handles user creation, login, and token management.
--   `/api/v1/client`: Endpoints for client-specific actions (e.g., booking a wash).
--   `/api/v1/washer`: Endpoints for washer-specific actions (e.g., managing profile, accepting offers).
--   `/api/v1/user`: Endpoints for general user actions (e.g., profile updates, support issues).
--   `/api/v1/admin`: Comprehensive administrative management endpoints.
--   `/ws`: WebSocket endpoint for real-time bidirectional communication.

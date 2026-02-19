@@ -23,13 +23,22 @@ BASE_URL = os.getenv("PAYSTACK_BASE_URL")
 API_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 
 
-client = httpx.AsyncClient(
-    base_url=BASE_URL, 
-    headers={"Authorization": f"Bearer {API_KEY}"},
-    timeout=15
-)
+# Initialize client only if BASE_URL is provided, otherwise it will crash on startup
+client = None
+if BASE_URL:
+    client = httpx.AsyncClient(
+        base_url=BASE_URL,
+        headers={"Authorization": f"Bearer {API_KEY}"},
+        timeout=15
+    )
+
+async def get_paystack_client():
+    if not client:
+        raise HTTPException(status_code=503, detail="Paystack service not configured")
+    return client
 
 async def create_subaccount(fullname: str, bank_code: str, account_number: str, charge: float):
+    pay_client = await get_paystack_client()
     url = "/subaccount"
     data = {
         "business_name": fullname, 
@@ -37,10 +46,11 @@ async def create_subaccount(fullname: str, bank_code: str, account_number: str, 
         "account_number": account_number, 
         "percentage_charge": charge
     }
-    response = await client.post(url, json=data)
+    response = await pay_client.post(url, json=data)
     return response.json()
 
 async def update_subaccount(subaccount_id: str, fullname: str, description: str, bank_code: str, account_number: str):
+    pay_client = await get_paystack_client()
     url = f"/subaccount/{subaccount_id}"
     data = {
         "business_name": fullname, 
@@ -48,23 +58,25 @@ async def update_subaccount(subaccount_id: str, fullname: str, description: str,
         "settlement_bank": bank_code, 
         "account_number": account_number
     }
-    response = await client.put(url, json=data)
+    response = await pay_client.put(url, json=data)
     return response.json()
 
 async def get_bank_list():
+    pay_client = await get_paystack_client()
     url = "/bank"
-    response = await client.get(url)
+    response = await pay_client.get(url)
     banks = [{"name": bank["name"], "code": bank["code"]} for bank in response.json()["data"]]
     return banks
 
 async def initialize_payment(amount: int, email: str, subaccount: str):
+    pay_client = await get_paystack_client()
     url = "/transaction/initialize"
     data = {
         "amount": str(amount*100),
         "email": email,
         "subaccount": subaccount
     }
-    response = await client.post(url, json=data)
+    response = await pay_client.post(url, json=data)
     return response.json()
 
 
@@ -85,6 +97,9 @@ async def paystack_webhook(
 
 
 async def handle_paystack_webhook(request: Request, background_tasks: BackgroundTasks, redis: redis_dependency, db: db_dependency):
+    if not API_KEY:
+         raise HTTPException(status_code=503, detail="Paystack API Key not configured")
+
     payload_bytes = await request.body()
 
     signature = request.headers.get("x-paystack-signature")
@@ -217,11 +232,3 @@ async def create_settlement(db: db_dependency, reference: str, split):
         "sender": "system",
         "message": f"payment of {payment_model.amount} for wash {payment_model.wash_id} has been sent successfully"
     }, payment_model.sender_id)
-    
-
-
-
-
-
-
-

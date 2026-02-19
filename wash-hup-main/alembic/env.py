@@ -1,9 +1,13 @@
 from logging.config import fileConfig
-
+import os
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+# Load environment variables
+load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -14,11 +18,26 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Set sqlalchemy.url from environment variable
+db_url = os.getenv("POSTGRESQL_DB_URL") or os.getenv("SQLALCHEMY_DATABASE_URL")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
+
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+from app.database import Base
+# Import all models to ensure they are registered with Base.metadata
+from app.models.auth.user import User, Profile, Notifications
+from app.models.client.profile import OwnerProfile
+from app.models.client.payment import Payment
+from app.models.client.wash import Wash, Location, Category as WashCategory
+from app.models.washer.profile import WasherProfile, Wallet
+from app.models.washer.transaction import Transaction, Remittance
+from app.models.admin.profile import AdminProfile, VerificationRequest, Faqs, TermsAndConditions
+from app.models.admin.prices import ServicePrice
+from app.models.admin.rewards import Reward, RewardRequest, Discounts
+
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

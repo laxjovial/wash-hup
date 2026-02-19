@@ -3,7 +3,7 @@ from ...dependencies import admin_dependency, db_dependency, get_profile_model
 from app.models.admin.rewards import Reward, RewardRequest, Discounts
 from app.models.washer.profile import WasherProfile
 from app.schemas.request.admin import RewardCreateSchema, DiscountCreateSchema
-from app.schemas.response.admin import AdminBaseResponse, AdminDataResponse
+from app.schemas.response.admin import AdminBaseResponse, AdminDataResponse, RewardResponse
 from uuid import uuid4
 from datetime import datetime
 from typing import Optional
@@ -36,7 +36,10 @@ async def create_reward(
     db.add(reward)
     db.commit()
     db.refresh(reward)
-    return {"status": "success", "data": reward}
+
+    # Use RewardResponse for serialization to avoid Pydantic errors with ORM models
+    reward_data = RewardResponse.model_validate(reward)
+    return {"status": "success", "data": reward_data}
 
 @router.get("/requests", status_code=status.HTTP_200_OK)
 async def get_reward_requests(db: db_dependency, admin: admin_dependency):

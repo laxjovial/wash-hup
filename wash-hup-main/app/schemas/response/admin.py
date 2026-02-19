@@ -13,6 +13,17 @@ class AdminBaseResponse(BaseModel):
 class AdminDataResponse(AdminBaseResponse):
     data: Any
 
+class RewardResponse(BaseModel):
+    id: str
+    admin_id: str
+    title: str
+    rating: float
+    expiry_date: datetime
+    available: bool
+    created: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 class DashboardOverviewData(BaseModel):
     total_users: int
     total_owners: int

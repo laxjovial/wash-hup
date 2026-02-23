@@ -7,7 +7,10 @@ def getWasherFromList(washers: list[str], db: any):
     washers_list = []
 
     for washer in washers:
-        washer_model = db.query(WasherProfile).filter(WasherProfile.id == washer).first()
+        washer_model = db.query(WasherProfile).filter(
+            WasherProfile.id == washer,
+            WasherProfile.profile_verified == True
+        ).first()
 
         if not washer_model:
             continue

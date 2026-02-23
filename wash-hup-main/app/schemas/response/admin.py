@@ -47,6 +47,8 @@ class WalletOverviewResponse(AdminBaseResponse):
 class AdminUserResponse(BaseModel):
     id: str
     user_id: str
+    fullname: str
+    email: str
     is_flagged: bool
     is_restricted: bool
     is_deactivated: bool

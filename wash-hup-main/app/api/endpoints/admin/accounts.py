@@ -19,6 +19,9 @@ router = APIRouter(
 @router.get("/owners", status_code=status.HTTP_200_OK, response_model=AdminUsersListResponse)
 async def get_owner_accounts(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
     owners = db.query(OwnerProfile).offset(skip).limit(limit).all()
+    for owner in owners:
+        owner.fullname = owner.user.fullname
+        owner.email = owner.user.email
     return {"status": "success", "data": owners}
 
 @router.get("/owners/filter", status_code=status.HTTP_200_OK)
@@ -36,9 +39,12 @@ async def get_owner_account(user_id: str, db: db_dependency, admin: admin_depend
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Owner account not found")
     return {"status": "success", "data": owner}
 
-@router.get("/washers", status_code=status.HTTP_200_OK)
+@router.get("/washers", status_code=status.HTTP_200_OK, response_model=AdminUsersListResponse)
 async def get_washer_accounts(db: db_dependency, admin: admin_dependency, skip: int = 0, limit: int = 100):
     washers = db.query(WasherProfile).offset(skip).limit(limit).all()
+    for washer in washers:
+        washer.fullname = washer.user.fullname
+        washer.email = washer.user.email
     return {"status": "success", "data": washers}
 
 @router.get("/washers/filter", status_code=status.HTTP_200_OK)
@@ -70,39 +76,57 @@ async def filter_verification_accounts(db: db_dependency, admin: admin_dependenc
     return {"status": "success", "data": verifications}
 
 @router.post("/verifications/accept/{user_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
-async def accept_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
+async def accept_verification_account(user_id: str, db: db_dependency, admin: admin_dependency, category: str = "Profile Verification"):
     admin_profile = get_profile_model(db, admin.get("id"))
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Washer profile not found")
-    washer.profile_verified = True
+
+    if category == "Profile Verification":
+        washer.profile_verified = True
+    elif category == "NIN Verification":
+        washer.nin_verified = True
 
     # Update verification request
-    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id, VerificationRequest.status == VerificationStatus.PENDING).first()
+    req = db.query(VerificationRequest).filter(
+        VerificationRequest.washer_id == washer.id,
+        VerificationRequest.status == VerificationStatus.PENDING,
+        VerificationRequest.category == category
+    ).first()
+
     if req:
         req.status = VerificationStatus.APPROVED
         req.handled_by = admin_profile.id
         req.seen = True
 
     db.commit()
-    return {"status": "success", "message": "Verification accepted"}
+    return {"status": "success", "message": f"{category} accepted"}
 
 @router.post("/verifications/reject/{user_id}", status_code=status.HTTP_200_OK)
-async def reject_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
+async def reject_verification_account(user_id: str, db: db_dependency, admin: admin_dependency, category: str = "Profile Verification"):
     admin_profile = get_profile_model(db, admin.get("id"))
     washer = db.query(WasherProfile).filter(WasherProfile.user_id == user_id).first()
     if not washer:
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Washer profile not found")
-    washer.profile_verified = False
 
-    req = db.query(VerificationRequest).filter(VerificationRequest.washer_id == washer.id, VerificationRequest.status == VerificationStatus.PENDING).first()
+    if category == "Profile Verification":
+        washer.profile_verified = False
+    elif category == "NIN Verification":
+        washer.nin_verified = False
+
+    req = db.query(VerificationRequest).filter(
+        VerificationRequest.washer_id == washer.id,
+        VerificationRequest.status == VerificationStatus.PENDING,
+        VerificationRequest.category == category
+    ).first()
+
     if req:
         req.status = VerificationStatus.REJECTED
         req.handled_by = admin_profile.id
         req.seen = True
 
     db.commit()
-    return {"status": "success", "message": "Verification rejected"}
+    return {"status": "success", "message": f"{category} rejected"}
 
 @router.post("/verifications/resubmit/{user_id}", status_code=status.HTTP_200_OK)
 async def resubmit_verification_account(user_id: str, db: db_dependency, admin: admin_dependency):
@@ -195,3 +219,13 @@ async def send_user_notification(
 
     await NOTIFY.create(db, profile.id, data.title, data.message, fullname=profile.user.fullname)
     return {"status": "success", "message": "Notification sent"}
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=AdminBaseResponse)
+async def delete_user_account(user_id: str, db: db_dependency, admin: admin_dependency):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+    return {"status": "success", "message": "User account deleted successfully"}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, status, BackgroundTask
 from app.models.admin.profile import Faqs, TermsAndConditions
 from ...dependencies import db_dependency, get_profile_model, user_dependency, redis_dependency
 from app.schemas.response.user import ProfileResponse
+from app.schemas.response.washer import WasherProfileResponse
 from app.schemas.request.auth import AddressSchema
 from app.models.auth.user import Address
 from app.models.washer.profile import Wallet
@@ -21,7 +22,7 @@ router = APIRouter(
     tags=["User"],
 )
 
-@router.get('/profile', status_code=status.HTTP_200_OK) #, response_model=ProfileResponse)
+@router.get('/profile', status_code=status.HTTP_200_OK, response_model=ProfileResponse | WasherProfileResponse)
 async def get_user_profile(db: db_dependency, user: user_dependency):
     profile_model = get_profile_model(db, user.get('id'))
     address = db.query(Address).filter(Address.profile_id == profile_model.id).first()
@@ -32,6 +33,11 @@ async def get_user_profile(db: db_dependency, user: user_dependency):
             "fullname": profile_model.user.fullname,
             "profile_pic": profile_model.profile_image,
             "location": address.address1 if address else None
+        }
+        return {
+            "status": "ok",
+            "message": "profile retreived successfully.",
+            "data": data
         }
 
     if profile_model.user_role == 'washer':
@@ -47,20 +53,21 @@ async def get_user_profile(db: db_dependency, user: user_dependency):
             "user_id": profile_model.user.id,
             "fullname": profile_model.user.fullname,
             "profile_pic": profile_model.profile_image,
-            "balance": wallet.balance if wallet else 0.00, # fix bal, remittance and rating
-            "remittance": 3,
+            "balance": wallet.balance if wallet else 0.00,
+            "remittance": 3.0,
             "rating": 1.0,
             "is_verified": profile_model.profile_verified,
             "role": profile_model.user_role,
             "location": address.address1 if address else None,
             "complete_setup": complete_profile
         }
+        return {
+            "status": "ok",
+            "message": "profile retreived successfully.",
+            "data": data
+        }
 
-    return {
-        "status": "ok",
-        "message": "profile retreived successfully.",
-        "data": data
-    }
+    raise HTTPException(status_code=400, detail="Invalid user role")
 
 # Notification Requests
 @router.get('/notification', status_code=status.HTTP_200_OK, response_model=NotificationResponse)

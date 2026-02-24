@@ -26,7 +26,7 @@ class Wash(Base):
     washer_pic: Mapped[str] = mapped_column(default=None)
     washer_rating: Mapped[float] = mapped_column(default=None)
     car_name: Mapped[str] = mapped_column(default=None)
-    location: Mapped[str] = mapped_column(default=None)
+    location_name: Mapped[str] = mapped_column(default=None)
 
     bucket_avl: Mapped[bool]
     water_avl: Mapped[bool]
@@ -46,7 +46,7 @@ class Wash(Base):
     
     # --- relationships
     cars = relationship('Car', back_populates='wash', cascade='all, delete-orphan')
-    location = relationship('Location', back_populates='wash')
+    wash_location = relationship('Location', back_populates='wash')
     rating = relationship('Review', back_populates='wash')
     
 
@@ -57,7 +57,7 @@ class Location(Base):
     location: Mapped[str]
     geom: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=4326))
 
-    wash = relationship('Wash', back_populates='location', cascade="all, delete-orphan")
+    wash = relationship('Wash', back_populates='wash_location', cascade="all, delete-orphan")
 
 class Car(Base):
     __tablename__ = "cars"

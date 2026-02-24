@@ -12,6 +12,11 @@ class MockGeometry(String):
 import geoalchemy2
 geoalchemy2.Geometry = MockGeometry
 
+import resend
+from unittest.mock import MagicMock
+resend.Emails = MagicMock()
+resend.Emails.send = MagicMock(return_value={"id": "mock-email-id"})
+
 os.environ["ENV"] = "testing"
 
 from fastapi.testclient import TestClient

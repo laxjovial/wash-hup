@@ -72,3 +72,40 @@ class CompletedWashSchema(BaseModel):
 
 class CompletedWashResponse(ResponseSchema):
     data: list[CompletedWashSchema]
+
+
+class WasherSetupProgress(BaseModel):
+    address: bool
+    profile_pic: bool
+    payment_detail: bool
+    availability: bool
+
+class WasherProfileData(BaseModel):
+    user_id: str
+    fullname: str
+    profile_pic: str | None = None
+    balance: float
+    remittance: float
+    rating: float
+    is_verified: bool
+    role: str
+    location: str | None = None
+    complete_setup: WasherSetupProgress
+
+class WasherProfileResponse(ResponseSchema):
+    data: WasherProfileData
+
+class WasherPublicProfileData(BaseModel):
+    wallet: float
+    remittance: float
+    rating: float
+    fullname: str
+    email: str
+    phone_number: str
+    profile_pic: str | None = None
+    is_verified: bool
+    location: str | None = None
+    is_available: bool
+
+class WasherPublicProfileResponse(ResponseSchema):
+    data: WasherPublicProfileData

@@ -2,6 +2,7 @@ from fastapi import APIRouter, status
 from ...dependencies import db_dependency, washer_dependency, get_profile_model
 from app.models.washer.profile import Wallet
 from app.models.auth.user import Address
+from app.schemas.response.washer import WasherPublicProfileResponse
 import json
 
 
@@ -10,7 +11,7 @@ router = APIRouter(
     tags=["Washer: Profile"]
 )
 
-@router.get('/', status_code=status.HTTP_200_OK)
+@router.get('/', status_code=status.HTTP_200_OK, response_model=WasherPublicProfileResponse)
 async def get_profile(db: db_dependency, washer: washer_dependency):
     profile_model = get_profile_model(db, washer.get('id'))
     address = db.query(Address).filter(Address.profile_id == profile_model.id).first()

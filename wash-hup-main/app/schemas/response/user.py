@@ -5,10 +5,8 @@ from pydantic import BaseModel
 class ProfileSchema(BaseModel):
     user_id: str
     fullname: str
-    phone_number: str
-    email: str
-    payment_method: str | None
-    profile_pic: str | None 
+    profile_pic: str | None = None
+    location: str | None = None
 
 class ProfileResponse(ResponseSchema):
     data: ProfileSchema

@@ -30,6 +30,9 @@ async def update_washer_availability(db: db_dependency, r: redis_dependency, was
         raise HTTPException(status_code=400, detail="Invalid user role")
 
     if available:
+        if not profile_model.profile_verified:
+            raise HTTPException(status_code=400, detail="Profile must be verified before setting availability.")
+
         address = db.query(Address).filter(Address.profile_id == profile_model.id).first()
 
         if not address:
@@ -156,5 +159,35 @@ async def verify_account(db: db_dependency, washer: washer_dependency):
     # send email
     return {
         "message": "nin verified successfully",
+        "status": "ok"
+    }
+
+@router.post('/submit-nin', status_code=status.HTTP_202_ACCEPTED)
+async def submit_nin(db: db_dependency, washer: washer_dependency, nin: str):
+    profile_model = get_profile_model(db, washer.get('id'))
+
+    if profile_model.nin_verified:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="NIN already verified")
+
+    verification = db.query(VerificationRequest).filter(
+        VerificationRequest.washer_id == profile_model.id,
+        VerificationRequest.category == "NIN Verification",
+        VerificationRequest.status == "pending"
+    ).first()
+
+    if verification:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="NIN verification already pending.")
+
+    request_model = VerificationRequest(
+        id="vr_"+str(uuid4()),
+        washer_id=profile_model.id,
+        category="NIN Verification",
+        admin_notes=f"NIN: {nin}"
+    )
+    db.add(request_model)
+    db.commit()
+
+    return {
+        "message": "NIN verification submitted successfully.",
         "status": "ok"
     }

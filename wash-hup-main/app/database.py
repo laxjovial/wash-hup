@@ -22,9 +22,16 @@ else:
 # Database configuration
 SQLALCHEMY_DATABASE_URL = os.getenv("POSTGRESQL_DB_URL") or os.getenv("SQLALCHEMY_DATABASE_URL")
 
+# Use a dummy URL for testing if not provided to avoid crash during import
+if not SQLALCHEMY_DATABASE_URL:
+    SQLALCHEMY_DATABASE_URL = "postgresql://user:pass@localhost/db"
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 
 Base = declarative_base()
-Base.metadata.create_all(engine)
+
+# Only create tables if not in a testing environment
+if os.getenv("ENV") != "testing":
+    Base.metadata.create_all(engine)

@@ -187,7 +187,7 @@ async def send_wash_offer(
         "payload": {
             "wash_id": wash_model.id,
             "profile_pic": profile_model.profile_image,
-            "address": wash_model.location.location,
+            "address": wash_model.wash_location.location,
             "washer_name": profile_model.user.fullname,
             "bucket_avl": wash_model.bucket_avl
         }
@@ -284,7 +284,7 @@ async def get_wash_details(
     
     wash_info = {
         "client_name": profile_model.user.fullname,
-        "location": wash_model.location.location,
+        "location": wash_model.wash_location.location,
         "car_detail": car_model.car_name,
         "bucket_avl": wash_model.bucket_avl,
         "water_avl": wash_model.water_avl,
